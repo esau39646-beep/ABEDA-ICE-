@@ -77,15 +77,22 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <button class="opt-btn" data-product="barra_20kg" onclick="setProducto('barra_20kg',this)">Barra / Bloque 20 kg <span class="price-tag" id="tag_barra_20kg">$30.00</span></button>
     </div>
     <div class="form-group">
-      <label for="cantidadInput">Cantidad de unidades</label>
+      <label for="cantidadInput">Cantidad de unidades *</label>
       <input type="number" id="cantidadInput" value="20" min="1" step="1" inputmode="numeric" oninput="calcular()">
     </div>
+
+    <!-- Campo integrado de gasto de gasolina en la misma venta -->
+    <div class="form-group" style="margin-top:12px;">
+      <label for="ventaGasolina">Gasto de gasolina en esta vuelta ($ MXN):</label>
+      <input type="number" id="ventaGasolina" placeholder="0 (o deja en blanco si no aplica)" min="0" step="1" inputmode="numeric" style="font-size:1rem; padding:12px;">
+    </div>
+
     <div class="calc-box">
       <div class="calc-info"><div>Precio unitario: <b id="lblPrecio">$15.00</b></div><div style="font-size:.75rem;margin-top:2px" id="lblFormula">20 × $15</div></div>
       <div class="calc-total" id="lblTotal">$300.00</div>
     </div>
     <button class="btn" id="chargeButton" onclick="procesarVenta()">¡COBRAR Y DESCONTAR!</button>
-    <p class="small-note">Confirma la cantidad y el producto antes de registrar el cobro.</p>
+    <p class="small-note">Si falta algún dato obligatorio, el registro se cancela y no se envía alerta.</p>
   </section>
 
   <section class="card">
@@ -110,29 +117,29 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       </select>
     </div>
     <div class="form-group">
-      <label for="restockQty">Cantidad:</label>
+      <label for="restockQty">Cantidad *</label>
       <input type="number" id="restockQty" placeholder="Ej: 500" min="1" step="1" inputmode="numeric" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
     </div>
     <div class="action-grid">
       <button class="btn btn-blue" onclick="sumarStock()" style="padding:12px; font-size:0.95rem;">➕ Sumar Stock</button>
       <button class="btn btn-secondary" onclick="fijarStock()" style="padding:12px; font-size:0.95rem;">✏️ Fijar Total</button>
     </div>
-    <p class="small-note">Usa "Sumar Stock" si agregaste producto nuevo, o "Fijar Total" para actualizar el total exacto.</p>
+    <p class="small-note">Si la cantidad está vacía o es inválida, no se aplicará ni mandará alerta.</p>
   </section>
 
-  <!-- REGISTRO DE GASTOS (GASOLINA, ETC.) -->
+  <!-- REGISTRO DE GASTOS EXTRA -->
   <section class="card" style="border-color: var(--warning);">
-    <div class="section-title">⛽ Registrar Gasto (Gasolina / Insumos)</div>
+    <div class="section-title">⛽ Registrar Gasto Extra</div>
     <div class="form-group" style="margin-top:0;">
-      <label for="gastoConcepto">Concepto del gasto:</label>
-      <input type="text" id="gastoConcepto" placeholder="Ej: Gasolina reparto" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
+      <label for="gastoConcepto">Concepto del gasto *</label>
+      <input type="text" id="gastoConcepto" placeholder="Ej: Mantenimiento compresor" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
     </div>
     <div class="form-group">
-      <label for="gastoMonto">Monto ($ MXN):</label>
+      <label for="gastoMonto">Monto ($ MXN) *</label>
       <input type="number" id="gastoMonto" placeholder="Ej: 300" min="1" step="1" inputmode="numeric" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
     </div>
     <button class="btn btn-blue" onclick="registrarGasto()" style="padding:12px; font-size:0.95rem; background:var(--warning); color:#000;">💸 Registrar Gasto del Mes</button>
-    <p class="small-note">Los gastos se restan automáticamente de tus ventas brutas para darte la ganancia real.</p>
+    <p class="small-note">Si faltan datos, el gasto no se registra.</p>
   </section>
 
   <!-- FINANZAS Y GANANCIA REAL -->
@@ -253,23 +260,46 @@ function calcular(){
 async function procesarVenta(){
   const input=document.getElementById("cantidadInput");
   const cant=Math.floor(Number(input.value)||0);
-  if(!Number.isSafeInteger(cant)||cant<=0){alert("Ingresa una cantidad válida.");return}
-  if(cant>inventario[productoActual]){alert("❌ No hay suficiente inventario.");return}
+  const gastoGasVal = Number(document.getElementById("ventaGasolina").value || 0);
+
+  // Validación estricta: si faltan datos o excede el stock, frena y NO manda nada a Telegram
+  if(!Number.isSafeInteger(cant)||cant<=0){
+    alert("❌ Error: Ingresa una cantidad de unidades válida.");
+    return;
+  }
+  if(cant>inventario[productoActual]){
+    alert("❌ Error: No hay suficiente inventario en el cuarto frío.");
+    return;
+  }
+
   const precio=TARIFARIO[clienteActual][productoActual],total=cant*precio;
-  if(!confirm(`Confirmar venta\n\n${cant} unidad(es) · ${nombreProducto(productoActual)}\nCliente: ${nombreCliente(clienteActual)}\nTotal: ${dinero(total)}\n\n¿Registrar cobro y descontar inventario?`))return;
+  
+  if(!confirm(`Confirmar venta\n\n${cant} unidad(es) · ${nombreProducto(productoActual)}\nCliente: ${nombreCliente(clienteActual)}\nTotal: ${dinero(total)}\nGasolina asociada: ${gastoGasVal > 0 ? dinero(gastoGasVal) : "No aplica"}\n\n¿Registrar cobro?`)) return;
   
   inventario[productoActual]-=cant;
-  ventas.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),fecha:new Date().toISOString(),cliente:clienteActual,producto:productoActual,cantidad:cant,precio,total});
-  
+  const ventaId = crypto.randomUUID?crypto.randomUUID():String(Date.now());
+  const fechaIso = new Date().toISOString();
+
+  ventas.push({id:ventaId, fecha:fechaIso, cliente:clienteActual, producto:productoActual, cantidad:cant, precio, total});
+
+  let textoGasolinaTelegram = "No aplica";
+  if(gastoGasVal > 0){
+    gastos.push({id:ventaId+"_g", fecha:fechaIso, concepto:`Gasolina (${nombreProducto(productoActual)})`, monto:gastoGasVal});
+    textoGasolinaTelegram = dinero(gastoGasVal);
+  }
+
   await guardarDatos();
   actualizarPantallaInventario();
   actualizarPantallaFinanzas();
+
+  document.getElementById("ventaGasolina").value = "";
 
   const msg = `🛒 *¡Nueva Venta Registrada!* 🧊\n\n` +
               `• Producto: ${cant} ${nombreProducto(productoActual)}\n` +
               `• Cliente: ${nombreCliente(clienteActual)}\n` +
               `• Precio unitario: ${dinero(precio)}\n` +
               `• Total generado: ${dinero(total)}\n` +
+              `• Gasto gasolina: ${textoGasolinaTelegram}\n` +
               `• Stock actual: ${inventario[productoActual]} unidades`;
   enviarTelegram(msg);
 
@@ -279,7 +309,10 @@ async function procesarVenta(){
 async function sumarStock(){
   const prod=document.getElementById("restockProd").value;
   const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
-  if(cant<=0){alert("Ingresa una cantidad válida.");return}
+  if(cant<=0){
+    alert("❌ Error: Ingresa una cantidad válida para sumar stock.");
+    return;
+  }
   
   inventario[prod]+=cant;
   await guardarDatos();
@@ -298,7 +331,10 @@ async function sumarStock(){
 async function fijarStock(){
   const prod=document.getElementById("restockProd").value;
   const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
-  if(cant<0){alert("Ingresa una cantidad válida.");return}
+  if(cant<0){
+    alert("❌ Error: Ingresa una cantidad válida.");
+    return;
+  }
   
   inventario[prod]=cant;
   await guardarDatos();
@@ -312,12 +348,14 @@ async function fijarStock(){
 
   alert(`✅ Stock actualizado para ${nombreProducto(prod)}.\nTotal actual: ${inventario[prod]}`);
 }
-
-async function registrarGasto(){
+  async function registrarGasto(){
   const concepto = document.getElementById("gastoConcepto").value.trim();
   const monto = Math.floor(Number(document.getElementById("gastoMonto").value)||0);
-  if(!concepto){alert("Escribe un concepto para el gasto (ej: Gasolina).");return}
-  if(monto<=0){alert("Ingresa un monto válido.");return}
+  
+  if(!concepto || monto <= 0){
+    alert("❌ Error: Debes rellenar el concepto y un monto válido para registrar el gasto.");
+    return;
+  }
 
   gastos.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),fecha:new Date().toISOString(),concepto,monto});
   await guardarDatos();
@@ -326,14 +364,14 @@ async function registrarGasto(){
   document.getElementById("gastoConcepto").value="";
   document.getElementById("gastoMonto").value="";
 
-  const msg = `⛽ *Gasto Registrado* 💸\n\n` +
+  const msg = `⛽ *Gasto Extra Registrado* 💸\n\n` +
               `• Concepto: ${concepto}\n` +
               `• Monto: ${dinero(monto)}`;
   enviarTelegram(msg);
 
   alert(`✅ Gasto de ${dinero(monto)} registrado correctamente.`);
 }
-  
+
 async function reiniciarVentasMes(){
   if(!confirm("¿Estás seguro de borrar el registro de ventas y gastos de este mes para empezar desde $0.00?"))return;
   const now=new Date();
@@ -349,7 +387,8 @@ async function reiniciarVentasMes(){
   actualizarPantallaFinanzas();
   alert("✅ ¡Listo! El mes se ha reiniciado a $0.00.");
 }
-  function nombreProducto(p){return({bolsa_3kg:"Bolsa 3 kg",bolsa_5kg:"Bolsa 5 kg",barra_20kg:"Barra 20 kg"})[p]||p}
+
+function nombreProducto(p){return({bolsa_3kg:"Bolsa 3 kg",bolsa_5kg:"Bolsa 5 kg",barra_20kg:"Barra 20 kg"})[p]||p}
 function nombreCliente(c){return({pueblo:"Tienda Pueblo",fuera:"Tienda Fuera",casa:"Venta en Casa",evento:"Eventos / Entrega"})[c]||c}
 
 function actualizarPantallaInventario(){
@@ -375,7 +414,7 @@ function actualizarPantallaFinanzas(){
 }
 
 function exportarRespaldo(){
-  const data={app:"ABEDA ICE",version:2,exportado:new Date().toISOString(),inventario,ventas,gastos};
+  const data={app:"ABEDA ICE",version:3,exportado:new Date().toISOString(),inventario,ventas,gastos};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download=`abeda-ice-respaldo-${new Date().toISOString().slice(0,10)}.json`;
