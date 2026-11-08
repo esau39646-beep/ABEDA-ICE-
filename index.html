@@ -35,6 +35,7 @@ select{font-size:1rem;}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn-secondary{background:#1e293b;border:1px solid var(--border);color:var(--text);font-size:.9rem;padding:12px}
 .btn-blue{background:var(--primary)}
+.btn-danger{background:var(--danger);color:white;border:none;}
 .stock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
 .stock-box{background:var(--input-bg);padding:10px 5px;border-radius:10px;text-align:center;border:1px solid var(--border)}
 .stock-box .s-label{font-size:.72rem;color:var(--text-muted)}
@@ -98,7 +99,7 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
     <p class="small-note">El aviso de stock se muestra dentro de la aplicación.</p>
   </section>
 
-  <!-- NUEVA SECCIÓN: REABASTECER INVENTARIO DESDE LA PANTALLA -->
+  <!-- SECCIÓN DE REABASTECIMIENTO -->
   <section class="card" style="border-color: var(--primary);">
     <div class="section-title">🔄 Reabastecer Inventario</div>
     <div class="form-group" style="margin-top:0;">
@@ -117,12 +118,15 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <button class="btn btn-blue" onclick="sumarStock()" style="padding:12px; font-size:0.95rem;">➕ Sumar Stock</button>
       <button class="btn btn-secondary" onclick="fijarStock()" style="padding:12px; font-size:0.95rem;">✏️ Fijar Total</button>
     </div>
-    <p class="small-note">Usa "Sumar Stock" si agregaste producto nuevo al cuarto frío, o "Fijar Total" si deseas actualizar la cantidad exacta que contaste.</p>
+    <p class="small-note">Usa "Sumar Stock" si agregaste producto nuevo al cuarto frío, o "Fijar Total" si deseas actualizar la cantidad exacta.</p>
   </section>
 
   <section class="card">
     <div class="section-title">📊 Ventas del Mes</div>
     <div class="finance-box"><div class="finance-title" id="lblMesActual">Ventas de este mes:</div><div class="finance-val" id="lblGananciaMes">$0.00</div></div>
+    <div class="action-grid" style="margin-top:12px;">
+      <button class="btn btn-danger" onclick="reiniciarVentasMes()" style="padding:10px; font-size:0.85rem;">🗑️ Borrar ventas de prueba</button>
+    </div>
     <p class="small-note">Este importe representa ventas cobradas, no utilidad neta.</p>
   </section>
 
@@ -203,7 +207,6 @@ function procesarVenta(){
   alert(`✅ ¡Venta registrada!\nCobrado: ${dinero(total)} MXN\nStock restante: ${inventario[productoActual]}`);
 }
 
-/* FUNCIONES DE REABASTECIMIENTO DESDE PANTALLA */
 function sumarStock(){
   const prod=document.getElementById("restockProd").value;
   const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
@@ -221,6 +224,20 @@ function fijarStock(){
   guardarDatos();actualizarPantallaInventario();
   document.getElementById("restockQty").value="";
   alert(`✅ Stock actualizado para ${nombreProducto(prod)}.\nTotal actual: ${inventario[prod]}`);
+}
+
+/* NUEVA FUNCIÓN PARA REINICIAR LAS VENTAS DEL MES EN CURSO */
+function reiniciarVentasMes(){
+  if(!confirm("¿Estás seguro de borrar el registro de ventas de este mes para empezar desde $0.00?"))return;
+  const now=new Date();
+  // Filtramos y dejamos únicamente las ventas que NO sean de este mes actual
+  ventas=ventas.filter(v=>{
+    const d=new Date(v.fecha);
+    return !(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth());
+  });
+  guardarDatos();
+  actualizarPantallaFinanzas();
+  alert("✅ ¡Listo! Las ventas de este mes se han reiniciado a $0.00.");
 }
 
 function nombreProducto(p){return({bolsa_3kg:"Bolsa 3 kg",bolsa_5kg:"Bolsa 5 kg",barra_20kg:"Barra 20 kg"})[p]||p}
@@ -266,6 +283,7 @@ function restaurarRespaldo(event){
   reader.readAsText(file);
 }
 let deferredInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",event,{passive:true});
 window.addEventListener("beforeinstallprompt",event=>{
   event.preventDefault();deferredInstallPrompt=event;
   document.getElementById("installButton").style.display="block";
