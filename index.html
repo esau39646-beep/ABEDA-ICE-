@@ -26,7 +26,7 @@ body{background:var(--bg-main);color:var(--text);padding:12px 12px calc(20px + e
 .opt-btn.active{background:rgba(2,132,199,.2);border-color:var(--primary);color:var(--accent)}
 .form-group{margin-top:10px}
 label{display:block;font-size:.85rem;color:var(--text-muted);margin-bottom:6px}
-input[type=number], select{width:100%;padding:14px;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:1.1rem;font-weight:bold;outline:none;box-sizing:border-box}
+input[type=number], input[type=text], select{width:100%;padding:14px;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:1.1rem;font-weight:bold;outline:none;box-sizing:border-box}
 select{font-size:1rem;}
 .calc-box{background:var(--input-bg);border-radius:10px;padding:14px;margin:14px 0;display:flex;justify-content:space-between;align-items:center;border:1px dashed var(--accent);gap:8px}
 .calc-info{font-size:.85rem;color:var(--text-muted)}
@@ -43,7 +43,7 @@ select{font-size:1rem;}
 .stock-box.alert{border-color:var(--warning);background:rgba(245,158,11,.1)}
 .stock-box.alert .s-val{color:var(--warning)}
 .alert-box{display:none;background:rgba(245,158,11,.15);border:1px solid var(--warning);color:#fbbf24;padding:12px;border-radius:10px;font-size:.85rem;margin-top:10px;text-align:center}
-.finance-box{background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.finance-box{background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .finance-title{font-size:.85rem;color:var(--text-muted)}
 .finance-val{font-size:1.2rem;font-weight:700;color:var(--success);white-space:nowrap}
 .small-note{font-size:.76rem;color:var(--text-muted);line-height:1.4;margin-top:9px}
@@ -85,7 +85,7 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <div class="calc-total" id="lblTotal">$300.00</div>
     </div>
     <button class="btn" id="chargeButton" onclick="procesarVenta()">¡COBRAR Y DESCONTAR!</button>
-    <p class="small-note">Confirma la cantidad y el producto antes de registrar el cobro. Cada venta se guarda en la nube.</p>
+    <p class="small-note">Confirma la cantidad y el producto antes de registrar el cobro.</p>
   </section>
 
   <section class="card">
@@ -96,10 +96,9 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <div class="stock-box" id="boxbarra_20kg"><div class="s-label">Barras 20 kg</div><div class="s-val" id="stbarra_20kg">45</div></div>
     </div>
     <div class="alert-box" id="alertaStock">⚠️ <b>¡ALERTA!</b> Hay productos con menos de 100 unidades en inventario.</div>
-    <p class="small-note">El aviso de stock se muestra dentro de la aplicación.</p>
   </section>
 
-  <!-- SECCIÓN DE REABASTECIMIENTO -->
+  <!-- REABASTECIMIENTO -->
   <section class="card" style="border-color: var(--primary);">
     <div class="section-title">🔄 Reabastecer Inventario</div>
     <div class="form-group" style="margin-top:0;">
@@ -118,16 +117,34 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <button class="btn btn-blue" onclick="sumarStock()" style="padding:12px; font-size:0.95rem;">➕ Sumar Stock</button>
       <button class="btn btn-secondary" onclick="fijarStock()" style="padding:12px; font-size:0.95rem;">✏️ Fijar Total</button>
     </div>
-    <p class="small-note">Usa "Sumar Stock" si agregaste producto nuevo al cuarto frío, o "Fijar Total" si deseas actualizar la cantidad exacta.</p>
+    <p class="small-note">Usa "Sumar Stock" si agregaste producto nuevo, o "Fijar Total" para actualizar el total exacto.</p>
   </section>
 
-  <section class="card">
-    <div class="section-title">📊 Ventas del Mes</div>
-    <div class="finance-box"><div class="finance-title" id="lblMesActual">Ventas de este mes:</div><div class="finance-val" id="lblGananciaMes">$0.00</div></div>
-    <div class="action-grid" style="margin-top:12px;">
-      <button class="btn btn-danger" onclick="reiniciarVentasMes()" style="padding:10px; font-size:0.85rem;">🗑️ Borrar ventas de prueba</button>
+  <!-- REGISTRO DE GASTOS (GASOLINA, ETC.) -->
+  <section class="card" style="border-color: var(--warning);">
+    <div class="section-title">⛽ Registrar Gasto (Gasolina / Insumos)</div>
+    <div class="form-group" style="margin-top:0;">
+      <label for="gastoConcepto">Concepto del gasto:</label>
+      <input type="text" id="gastoConcepto" placeholder="Ej: Gasolina reparto" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
     </div>
-    <p class="small-note">Este importe representa ventas cobradas, no utilidad neta.</p>
+    <div class="form-group">
+      <label for="gastoMonto">Monto ($ MXN):</label>
+      <input type="number" id="gastoMonto" placeholder="Ej: 300" min="1" step="1" inputmode="numeric" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
+    </div>
+    <button class="btn btn-blue" onclick="registrarGasto()" style="padding:12px; font-size:0.95rem; background:var(--warning); color:#000;">💸 Registrar Gasto del Mes</button>
+    <p class="small-note">Los gastos se restan automáticamente de tus ventas brutas para darte la ganancia real.</p>
+  </section>
+
+  <!-- FINANZAS Y GANANCIA REAL -->
+  <section class="card">
+    <div class="section-title">📊 Balance Financiero del Mes</div>
+    <div class="finance-box"><div class="finance-title" id="lblMesActual">Ventas brutas:</div><div class="finance-val" id="lblGananciaMes">$0.00</div></div>
+    <div class="finance-box"><div class="finance-title">Gastos registrados:</div><div class="finance-val" id="lblGastosMes" style="color:var(--danger)">$0.00</div></div>
+    <div class="finance-box" style="border: 1px dashed var(--success);"><div class="finance-title"><b>Ganancia neta real:</b></div><div class="finance-val" id="lblUtilidadReal" style="font-size:1.4rem">$0.00</div></div>
+    
+    <div class="action-grid" style="margin-top:12px;">
+      <button class="btn btn-danger" onclick="reiniciarVentasMes()" style="padding:10px; font-size:0.85rem;">🗑️ Borrar mes actual</button>
+    </div>
   </section>
 
   <section class="card">
@@ -138,12 +155,27 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <button class="btn btn-secondary" onclick="instalarApp()" id="installButton" style="display:none">Instalar aplicación</button>
     </div>
     <input type="file" id="restoreFile" accept="application/json,.json" style="display:none" onchange="restaurarRespaldo(event)">
-    <p class="small-note">Descarga periódicamente un respaldo.</p>
   </section>
 </div>
 
 <script>
 "use strict";
+const BOT_TOKEN = "8191980421:AAGKJeyji7IqDPoCaK_2HBvZxpyCZciIQaY";
+const CHAT_ID = "@afixiapro";
+
+async function enviarTelegram(texto) {
+  try {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: CHAT_ID, text: texto, parse_mode: "Markdown" })
+    });
+  } catch (err) {
+    console.error("Error al enviar alerta a Telegram:", err);
+  }
+}
+
 const TARIFARIO={
   pueblo:{bolsa_3kg:10,bolsa_5kg:15,barra_20kg:30},
   fuera:{bolsa_3kg:12,bolsa_5kg:17,barra_20kg:32},
@@ -153,13 +185,17 @@ const TARIFARIO={
 const DEFAULT_STOCK={bolsa_3kg:250,bolsa_5kg:150,barra_20kg:45};
 const STORAGE_STOCK="abeda_pwa_inventario_v1";
 const STORAGE_SALES="abeda_pwa_ventas_v1";
+const STORAGE_EXPENSES="abeda_pwa_gastos_v1";
 const UMBRAL=100;
+
 let clienteActual="pueblo",productoActual="bolsa_5kg";
 
 function leerJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){return fallback}}
 let inventario=normalizarInventario(leerJSON(STORAGE_STOCK,DEFAULT_STOCK));
 let ventas=leerJSON(STORAGE_SALES,[]);
+let gastos=leerJSON(STORAGE_EXPENSES,[]);
 if(!Array.isArray(ventas))ventas=[];
+if(!Array.isArray(gastos))gastos=[];
 
 function normalizarInventario(data){
   const result={};
@@ -173,12 +209,14 @@ function normalizarInventario(data){
 async function guardarDatos(){
   localStorage.setItem(STORAGE_STOCK,JSON.stringify(inventario));
   localStorage.setItem(STORAGE_SALES,JSON.stringify(ventas));
+  localStorage.setItem(STORAGE_EXPENSES,JSON.stringify(gastos));
 
   if (window.db && window.setDoc && window.doc) {
     try {
       await window.setDoc(window.doc(window.db, "abeda_ice", "inventario_general"), {
         inventario: inventario,
         ventas: ventas,
+        gastos: gastos,
         ultimaActualizacion: new Date().toISOString()
       });
     } catch (e) {
@@ -211,52 +249,109 @@ function calcular(){
   document.getElementById("lblTotal").textContent=dinero(total);
   document.getElementById("chargeButton").disabled=cant<=0;
 }
-function procesarVenta(){
+
+async function procesarVenta(){
   const input=document.getElementById("cantidadInput");
   const cant=Math.floor(Number(input.value)||0);
   if(!Number.isSafeInteger(cant)||cant<=0){alert("Ingresa una cantidad válida.");return}
   if(cant>inventario[productoActual]){alert("❌ No hay suficiente inventario.");return}
   const precio=TARIFARIO[clienteActual][productoActual],total=cant*precio;
   if(!confirm(`Confirmar venta\n\n${cant} unidad(es) · ${nombreProducto(productoActual)}\nCliente: ${nombreCliente(clienteActual)}\nTotal: ${dinero(total)}\n\n¿Registrar cobro y descontar inventario?`))return;
+  
   inventario[productoActual]-=cant;
   ventas.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),fecha:new Date().toISOString(),cliente:clienteActual,producto:productoActual,cantidad:cant,precio,total});
-  guardarDatos();actualizarPantallaInventario();actualizarPantallaFinanzas();
+  
+  await guardarDatos();
+  actualizarPantallaInventario();
+  actualizarPantallaFinanzas();
+
+  const msg = `🛒 *¡Nueva Venta Registrada!* 🧊\n\n` +
+              `• Producto: ${cant} ${nombreProducto(productoActual)}\n` +
+              `• Cliente: ${nombreCliente(clienteActual)}\n` +
+              `• Precio unitario: ${dinero(precio)}\n` +
+              `• Total generado: ${dinero(total)}\n` +
+              `• Stock actual: ${inventario[productoActual]} unidades`;
+  enviarTelegram(msg);
+
   alert(`✅ ¡Venta registrada!\nCobrado: ${dinero(total)} MXN\nStock restante: ${inventario[productoActual]}`);
 }
 
-function sumarStock(){
+async function sumarStock(){
   const prod=document.getElementById("restockProd").value;
   const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
   if(cant<=0){alert("Ingresa una cantidad válida.");return}
+  
   inventario[prod]+=cant;
-  guardarDatos();actualizarPantallaInventario();
+  await guardarDatos();
+  actualizarPantallaInventario();
   document.getElementById("restockQty").value="";
+
+  const msg = `🔄 *Reabastecimiento de Stock* 🧊\n\n` +
+              `• Producto: ${nombreProducto(prod)}\n` +
+              `• Cantidad agregada: +${cant}\n` +
+              `• Stock total actualizado: ${inventario[prod]} unidades`;
+  enviarTelegram(msg);
+
   alert(`✅ Se han sumado ${cant} unidades a ${nombreProducto(prod)}.\nNuevo stock: ${inventario[prod]}`);
 }
-function fijarStock(){
+
+async function fijarStock(){
   const prod=document.getElementById("restockProd").value;
   const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
   if(cant<0){alert("Ingresa una cantidad válida.");return}
+  
   inventario[prod]=cant;
-  guardarDatos();actualizarPantallaInventario();
+  await guardarDatos();
+  actualizarPantallaInventario();
   document.getElementById("restockQty").value="";
+
+  const msg = `✏️ *Stock Ajustado (Fijo)* 🧊\n\n` +
+              `• Producto: ${nombreProducto(prod)}\n` +
+              `• Nuevo total fijado: ${inventario[prod]} unidades`;
+  enviarTelegram(msg);
+
   alert(`✅ Stock actualizado para ${nombreProducto(prod)}.\nTotal actual: ${inventario[prod]}`);
 }
 
-function reiniciarVentasMes(){
-  if(!confirm("¿Estás seguro de borrar el registro de ventas de este mes para empezar desde $0.00?"))return;
+async function registrarGasto(){
+  const concepto = document.getElementById("gastoConcepto").value.trim();
+  const monto = Math.floor(Number(document.getElementById("gastoMonto").value)||0);
+  if(!concepto){alert("Escribe un concepto para el gasto (ej: Gasolina).");return}
+  if(monto<=0){alert("Ingresa un monto válido.");return}
+
+  gastos.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),fecha:new Date().toISOString(),concepto,monto});
+  await guardarDatos();
+  actualizarPantallaFinanzas();
+
+  document.getElementById("gastoConcepto").value="";
+  document.getElementById("gastoMonto").value="";
+
+  const msg = `⛽ *Gasto Registrado* 💸\n\n` +
+              `• Concepto: ${concepto}\n` +
+              `• Monto: ${dinero(monto)}`;
+  enviarTelegram(msg);
+
+  alert(`✅ Gasto de ${dinero(monto)} registrado correctamente.`);
+}
+  
+async function reiniciarVentasMes(){
+  if(!confirm("¿Estás seguro de borrar el registro de ventas y gastos de este mes para empezar desde $0.00?"))return;
   const now=new Date();
   ventas=ventas.filter(v=>{
     const d=new Date(v.fecha);
     return !(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth());
   });
-  guardarDatos();
+  gastos=gastos.filter(g=>{
+    const d=new Date(g.fecha);
+    return !(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth());
+  });
+  await guardarDatos();
   actualizarPantallaFinanzas();
-  alert("✅ ¡Listo! Las ventas de este mes se han reiniciado a $0.00.");
+  alert("✅ ¡Listo! El mes se ha reiniciado a $0.00.");
 }
-
-function nombreProducto(p){return({bolsa_3kg:"Bolsa 3 kg",bolsa_5kg:"Bolsa 5 kg",barra_20kg:"Barra 20 kg"})[p]||p}
+  function nombreProducto(p){return({bolsa_3kg:"Bolsa 3 kg",bolsa_5kg:"Bolsa 5 kg",barra_20kg:"Barra 20 kg"})[p]||p}
 function nombreCliente(c){return({pueblo:"Tienda Pueblo",fuera:"Tienda Fuera",casa:"Venta en Casa",evento:"Eventos / Entrega"})[c]||c}
+
 function actualizarPantallaInventario(){
   let hayAlerta=false;
   for(const [prod,val] of Object.entries(inventario)){
@@ -266,30 +361,41 @@ function actualizarPantallaInventario(){
   }
   document.getElementById("alertaStock").style.display=hayAlerta?"block":"none";
 }
+
 function actualizarPantallaFinanzas(){
   const now=new Date(),meses=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const total=ventas.filter(v=>{const d=new Date(v.fecha);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()}).reduce((sum,v)=>sum+Number(v.total||0),0);
+  const totalVentas=ventas.filter(v=>{const d=new Date(v.fecha);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()}).reduce((sum,v)=>sum+Number(v.total||0),0);
+  const totalGastos=gastos.filter(g=>{const d=new Date(g.fecha);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()}).reduce((sum,g)=>sum+Number(g.monto||0),0);
+  const utilidadNeta=totalVentas-totalGastos;
+
   document.getElementById("lblMesActual").textContent=`Ventas de ${meses[now.getMonth()]}:`;
-  document.getElementById("lblGananciaMes").textContent=dinero(total);
+  document.getElementById("lblGananciaMes").textContent=dinero(totalVentas);
+  document.getElementById("lblGastosMes").textContent=dinero(totalGastos);
+  document.getElementById("lblUtilidadReal").textContent=dinero(utilidadNeta);
 }
+
 function exportarRespaldo(){
-  const data={app:"ABEDA ICE",version:1,exportado:new Date().toISOString(),inventario,ventas};
+  const data={app:"ABEDA ICE",version:2,exportado:new Date().toISOString(),inventario,ventas,gastos};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download=`abeda-ice-respaldo-${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
+
 function restaurarRespaldo(event){
   const file=event.target.files?.[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=()=>{
+  reader.onload=async ()=>{
     try{
       const data=JSON.parse(reader.result);
       if(data.app!=="ABEDA ICE"||!data.inventario||!Array.isArray(data.ventas))throw new Error("Formato no válido");
       if(!confirm("Esto reemplazará el inventario y el historial. ¿Continuar?"))return;
       inventario=normalizarInventario(data.inventario);
       ventas=data.ventas.filter(v=>v&&typeof v.fecha==="string"&&Number.isFinite(Number(v.total)));
-      guardarDatos();actualizarPantallaInventario();actualizarPantallaFinanzas();
+      gastos=Array.isArray(data.gastos)?data.gastos:[];
+      await guardarDatos();
+      actualizarPantallaInventario();
+      actualizarPantallaFinanzas();
       alert("✅ Respaldo restaurado correctamente.");
     }catch(err){alert("No se pudo restaurar el respaldo.")}
     finally{event.target.value=""}
@@ -355,4 +461,25 @@ if("serviceWorker" in navigator && location.protocol!=="file:"){
   // Escuchar cambios en tiempo real en la nube
   setTimeout(() => {
     if (window.db && window.onSnapshot && window.doc) {
-      window.onSnapshot(window.do
+      window.onSnapshot(window.doc(window.db, "abeda_ice", "inventario_general"), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.inventario && typeof normalizarInventario === "function") {
+            inventario = normalizarInventario(data.inventario);
+            actualizarPantallaInventario();
+          }
+          if (data.ventas && Array.isArray(data.ventas)) {
+            ventas = data.ventas;
+          }
+          if (data.gastos && Array.isArray(data.gastos)) {
+            gastos = data.gastos;
+          }
+          actualizarPantallaFinanzas();
+        }
+      });
+    }
+  }, 1000);
+</script>
+
+</body>
+</html>
