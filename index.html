@@ -26,7 +26,8 @@ body{background:var(--bg-main);color:var(--text);padding:12px 12px calc(20px + e
 .opt-btn.active{background:rgba(2,132,199,.2);border-color:var(--primary);color:var(--accent)}
 .form-group{margin-top:10px}
 label{display:block;font-size:.85rem;color:var(--text-muted);margin-bottom:6px}
-input[type=number]{width:100%;padding:14px;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:1.2rem;font-weight:bold;text-align:center;outline:none}
+input[type=number], select{width:100%;padding:14px;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:1.1rem;font-weight:bold;outline:none;box-sizing:border-box}
+select{font-size:1rem;}
 .calc-box{background:var(--input-bg);border-radius:10px;padding:14px;margin:14px 0;display:flex;justify-content:space-between;align-items:center;border:1px dashed var(--accent);gap:8px}
 .calc-info{font-size:.85rem;color:var(--text-muted)}
 .calc-total{font-size:1.6rem;font-weight:800;color:var(--accent);white-space:nowrap}
@@ -94,13 +95,35 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <div class="stock-box" id="boxbarra_20kg"><div class="s-label">Barras 20 kg</div><div class="s-val" id="stbarra_20kg">45</div></div>
     </div>
     <div class="alert-box" id="alertaStock">⚠️ <b>¡ALERTA!</b> Hay productos con menos de 100 unidades en inventario.</div>
-    <p class="small-note">El aviso de stock se muestra dentro de la aplicación. La notificación automática de Telegram requiere configurar un servicio seguro por separado.</p>
+    <p class="small-note">El aviso de stock se muestra dentro de la aplicación.</p>
+  </section>
+
+  <!-- NUEVA SECCIÓN: REABASTECER INVENTARIO DESDE LA PANTALLA -->
+  <section class="card" style="border-color: var(--primary);">
+    <div class="section-title">🔄 Reabastecer Inventario</div>
+    <div class="form-group" style="margin-top:0;">
+      <label for="restockProd">Selecciona el producto a rellenar:</label>
+      <select id="restockProd" style="margin-top:4px; margin-bottom:10px;">
+        <option value="bolsa_3kg">Bolsa de 3 kg</option>
+        <option value="bolsa_5kg">Bolsa de 5 kg</option>
+        <option value="barra_20kg">Barra / Bloque 20 kg</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="restockQty">Cantidad:</label>
+      <input type="number" id="restockQty" placeholder="Ej: 500" min="1" step="1" inputmode="numeric" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
+    </div>
+    <div class="action-grid">
+      <button class="btn btn-blue" onclick="sumarStock()" style="padding:12px; font-size:0.95rem;">➕ Sumar Stock</button>
+      <button class="btn btn-secondary" onclick="fijarStock()" style="padding:12px; font-size:0.95rem;">✏️ Fijar Total</button>
+    </div>
+    <p class="small-note">Usa "Sumar Stock" si agregaste producto nuevo al cuarto frío, o "Fijar Total" si deseas actualizar la cantidad exacta que contaste.</p>
   </section>
 
   <section class="card">
     <div class="section-title">📊 Ventas del Mes</div>
     <div class="finance-box"><div class="finance-title" id="lblMesActual">Ventas de este mes:</div><div class="finance-val" id="lblGananciaMes">$0.00</div></div>
-    <p class="small-note">Este importe representa ventas cobradas, no utilidad neta. Para calcular utilidad habría que registrar costos de producción y otros gastos.</p>
+    <p class="small-note">Este importe representa ventas cobradas, no utilidad neta.</p>
   </section>
 
   <section class="card">
@@ -111,7 +134,7 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <button class="btn btn-secondary" onclick="instalarApp()" id="installButton" style="display:none">Instalar aplicación</button>
     </div>
     <input type="file" id="restoreFile" accept="application/json,.json" style="display:none" onchange="restaurarRespaldo(event)">
-    <p class="small-note">Descarga periódicamente un respaldo. Los datos se guardan en el almacenamiento de este navegador y dispositivo; borrar los datos del navegador puede eliminarlos.</p>
+    <p class="small-note">Descarga periódicamente un respaldo. Los datos se guardan en el almacenamiento de este navegador y dispositivo.</p>
   </section>
 </div>
 <script>
@@ -179,6 +202,27 @@ function procesarVenta(){
   guardarDatos();actualizarPantallaInventario();actualizarPantallaFinanzas();
   alert(`✅ ¡Venta registrada!\nCobrado: ${dinero(total)} MXN\nStock restante: ${inventario[productoActual]}`);
 }
+
+/* FUNCIONES DE REABASTECIMIENTO DESDE PANTALLA */
+function sumarStock(){
+  const prod=document.getElementById("restockProd").value;
+  const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
+  if(cant<=0){alert("Ingresa una cantidad válida.");return}
+  inventario[prod]+=cant;
+  guardarDatos();actualizarPantallaInventario();
+  document.getElementById("restockQty").value="";
+  alert(`✅ Se han sumado ${cant} unidades a ${nombreProducto(prod)}.\nNuevo stock: ${inventario[prod]}`);
+}
+function fijarStock(){
+  const prod=document.getElementById("restockProd").value;
+  const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
+  if(cant<0){alert("Ingresa una cantidad válida.");return}
+  inventario[prod]=cant;
+  guardarDatos();actualizarPantallaInventario();
+  document.getElementById("restockQty").value="";
+  alert(`✅ Stock actualizado para ${nombreProducto(prod)}.\nTotal actual: ${inventario[prod]}`);
+}
+
 function nombreProducto(p){return({bolsa_3kg:"Bolsa 3 kg",bolsa_5kg:"Bolsa 5 kg",barra_20kg:"Barra 20 kg"})[p]||p}
 function nombreCliente(c){return({pueblo:"Tienda Pueblo",fuera:"Tienda Fuera",casa:"Venta en Casa",evento:"Eventos / Entrega"})[c]||c}
 function actualizarPantallaInventario(){
