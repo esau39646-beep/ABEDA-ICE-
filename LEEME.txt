@@ -1,0 +1,22 @@
+ABEDA ICE — PWA
+
+ARCHIVOS
+- index.html: aplicación.
+- manifest.json: configuración instalable.
+- service-worker.js: caché para abrir la app sin conexión después de la primera visita.
+- icons/: iconos de Android.
+
+INSTALACIÓN EN ANDROID
+1. Sube TODO el contenido de esta carpeta a un hosting que sirva HTTPS (por ejemplo, GitHub Pages).
+2. Abre la dirección HTTPS publicada en Google Chrome desde Android.
+3. Espera a que cargue por completo.
+4. En Chrome toca ⋮ > Instalar aplicación (o Añadir a pantalla principal).
+5. Confirma. ABEDA ICE aparecerá como icono en el teléfono.
+
+IMPORTANTE
+- No abras index.html como archivo local esperando instalar la PWA: para instalación y service worker se necesita HTTPS o localhost.
+- La aplicación guarda inventario e historial en el almacenamiento local del navegador de ese dispositivo.
+- Usa “Descargar respaldo” periódicamente y guarda el JSON fuera del teléfono.
+- Si borras los datos del navegador, puedes perder los datos locales; restaura el último respaldo.
+- El aviso de inventario es interno. Telegram no está conectado en esta versión para no exponer un token secreto dentro de una aplicación pública.
+- “Ventas del mes” muestra el total cobrado, no la utilidad neta.

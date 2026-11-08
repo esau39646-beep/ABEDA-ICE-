@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#020617">
+<meta name="description" content="Sistema de ventas e inventario ABEDA ICE">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>ABEDA ICE</title>
+<style>
+:root{--bg-main:#020617;--card-bg:#0f172a;--input-bg:#1e293b;--border:#334155;--text:#f8fafc;--text-muted:#94a3b8;--primary:#0284c7;--accent:#38bdf8;--warning:#f59e0b;--success:#10b981;--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
+body{background:var(--bg-main);color:var(--text);padding:12px 12px calc(20px + env(safe-area-inset-bottom));display:flex;justify-content:center;min-height:100vh}
+.container{width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px}
+.header{text-align:center;padding:14px;background:var(--card-bg);border-radius:14px;border:1px solid var(--border)}
+.header h1{color:var(--accent);font-size:1.5rem;letter-spacing:.4px}
+.header p{color:var(--text-muted);font-size:.85rem;margin-top:2px}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px}
+.section-title{font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:10px}
+.grid-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.grid-options.full{grid-template-columns:1fr}
+.opt-btn{background:var(--input-bg);border:2px solid var(--border);border-radius:10px;padding:12px 10px;color:var(--text);font-size:.9rem;font-weight:600;text-align:center;cursor:pointer}
+.opt-btn .price-tag{font-size:.75rem;color:var(--text-muted);display:block;margin-top:4px}
+.opt-btn.active{background:rgba(2,132,199,.2);border-color:var(--primary);color:var(--accent)}
+.form-group{margin-top:10px}
+label{display:block;font-size:.85rem;color:var(--text-muted);margin-bottom:6px}
+input[type=number]{width:100%;padding:14px;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:1.2rem;font-weight:bold;text-align:center;outline:none}
+.calc-box{background:var(--input-bg);border-radius:10px;padding:14px;margin:14px 0;display:flex;justify-content:space-between;align-items:center;border:1px dashed var(--accent);gap:8px}
+.calc-info{font-size:.85rem;color:var(--text-muted)}
+.calc-total{font-size:1.6rem;font-weight:800;color:var(--accent);white-space:nowrap}
+.btn{width:100%;padding:14px;background:var(--success);color:white;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-secondary{background:#1e293b;border:1px solid var(--border);color:var(--text);font-size:.9rem;padding:12px}
+.btn-blue{background:var(--primary)}
+.stock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.stock-box{background:var(--input-bg);padding:10px 5px;border-radius:10px;text-align:center;border:1px solid var(--border)}
+.stock-box .s-label{font-size:.72rem;color:var(--text-muted)}
+.stock-box .s-val{font-size:1.2rem;font-weight:800;margin-top:4px;color:var(--text)}
+.stock-box.alert{border-color:var(--warning);background:rgba(245,158,11,.1)}
+.stock-box.alert .s-val{color:var(--warning)}
+.alert-box{display:none;background:rgba(245,158,11,.15);border:1px solid var(--warning);color:#fbbf24;padding:12px;border-radius:10px;font-size:.85rem;margin-top:10px;text-align:center}
+.finance-box{background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.finance-title{font-size:.85rem;color:var(--text-muted)}
+.finance-val{font-size:1.2rem;font-weight:700;color:var(--success);white-space:nowrap}
+.small-note{font-size:.76rem;color:var(--text-muted);line-height:1.4;margin-top:9px}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.status{font-size:.78rem;color:var(--text-muted);text-align:center;padding:4px}
+.status.online{color:var(--success)}.status.offline{color:var(--warning)}
+hr{border:0;border-top:1px solid var(--border);margin:14px 0}
+@media(max-width:360px){.stock-grid{gap:5px}.stock-box{padding:8px 3px}.stock-box .s-label{font-size:.66rem}.calc-total{font-size:1.35rem}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="header">
+    <h1>🧊 ABEDA ICE</h1>
+    <p>Techaluta de Montenegro, Jal.</p>
+    <div id="connectionStatus" class="status">Comprobando conexión…</div>
+  </header>
+
+  <section class="card">
+    <div class="section-title">👤 Tipo de Cliente</div>
+    <div class="grid-options" id="clientOptions">
+      <button class="opt-btn active" data-client="pueblo" onclick="setCliente('pueblo',this)">Tienda Pueblo</button>
+      <button class="opt-btn" data-client="fuera" onclick="setCliente('fuera',this)">Tienda Fuera</button>
+      <button class="opt-btn" data-client="casa" onclick="setCliente('casa',this)">Venta en Casa</button>
+      <button class="opt-btn" data-client="evento" onclick="setCliente('evento',this)">Eventos / Entrega</button>
+    </div>
+    <div class="section-title" style="margin-top:14px">📦 Producto</div>
+    <div class="grid-options full" id="productOptions">
+      <button class="opt-btn active" data-product="bolsa_5kg" onclick="setProducto('bolsa_5kg',this)">Bolsa de 5 kg <span class="price-tag" id="tag_bolsa_5kg">$15.00</span></button>
+      <button class="opt-btn" data-product="bolsa_3kg" onclick="setProducto('bolsa_3kg',this)">Bolsa de 3 kg <span class="price-tag" id="tag_bolsa_3kg">$10.00</span></button>
+      <button class="opt-btn" data-product="barra_20kg" onclick="setProducto('barra_20kg',this)">Barra / Bloque 20 kg <span class="price-tag" id="tag_barra_20kg">$30.00</span></button>
+    </div>
+    <div class="form-group">
+      <label for="cantidadInput">Cantidad de unidades</label>
+      <input type="number" id="cantidadInput" value="20" min="1" step="1" inputmode="numeric" oninput="calcular()">
+    </div>
+    <div class="calc-box">
+      <div class="calc-info"><div>Precio unitario: <b id="lblPrecio">$15.00</b></div><div style="font-size:.75rem;margin-top:2px" id="lblFormula">20 × $15</div></div>
+      <div class="calc-total" id="lblTotal">$300.00</div>
+    </div>
+    <button class="btn" id="chargeButton" onclick="procesarVenta()">¡COBRAR Y DESCONTAR!</button>
+    <p class="small-note">Confirma la cantidad y el producto antes de registrar el cobro. Cada venta se guarda en este dispositivo.</p>
+  </section>
+
+  <section class="card">
+    <div class="section-title">❄️ Cuarto Frío (Inventario)</div>
+    <div class="stock-grid">
+      <div class="stock-box" id="boxbolsa_3kg"><div class="s-label">Bolsas 3 kg</div><div class="s-val" id="stbolsa_3kg">250</div></div>
+      <div class="stock-box" id="boxbolsa_5kg"><div class="s-label">Bolsas 5 kg</div><div class="s-val" id="stbolsa_5kg">150</div></div>
+      <div class="stock-box" id="boxbarra_20kg"><div class="s-label">Barras 20 kg</div><div class="s-val" id="stbarra_20kg">45</div></div>
+    </div>
+    <div class="alert-box" id="alertaStock">⚠️ <b>¡ALERTA!</b> Hay productos con menos de 100 unidades en inventario.</div>
+    <p class="small-note">El aviso de stock se muestra dentro de la aplicación. La notificación automática de Telegram requiere configurar un servicio seguro por separado.</p>
+  </section>
+
+  <section class="card">
+    <div class="section-title">📊 Ventas del Mes</div>
+    <div class="finance-box"><div class="finance-title" id="lblMesActual">Ventas de este mes:</div><div class="finance-val" id="lblGananciaMes">$0.00</div></div>
+    <p class="small-note">Este importe representa ventas cobradas, no utilidad neta. Para calcular utilidad habría que registrar costos de producción y otros gastos.</p>
+  </section>
+
+  <section class="card">
+    <div class="section-title">🗂️ Respaldo de información</div>
+    <button class="btn btn-blue" onclick="exportarRespaldo()">Descargar respaldo</button>
+    <div class="action-grid">
+      <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">Restaurar respaldo</button>
+      <button class="btn btn-secondary" onclick="instalarApp()" id="installButton" style="display:none">Instalar aplicación</button>
+    </div>
+    <input type="file" id="restoreFile" accept="application/json,.json" style="display:none" onchange="restaurarRespaldo(event)">
+    <p class="small-note">Descarga periódicamente un respaldo. Los datos se guardan en el almacenamiento de este navegador y dispositivo; borrar los datos del navegador puede eliminarlos.</p>
+  </section>
+</div>
+<script>
+"use strict";
+const TARIFARIO={
+  pueblo:{bolsa_3kg:10,bolsa_5kg:15,barra_20kg:30},
+  fuera:{bolsa_3kg:12,bolsa_5kg:17,barra_20kg:32},
+  casa:{bolsa_3kg:15,bolsa_5kg:20,barra_20kg:40},
+  evento:{bolsa_3kg:20,bolsa_5kg:25,barra_20kg:45}
+};
+const DEFAULT_STOCK={bolsa_3kg:250,bolsa_5kg:150,barra_20kg:45};
+const STORAGE_STOCK="abeda_pwa_inventario_v1";
+const STORAGE_SALES="abeda_pwa_ventas_v1";
+const UMBRAL=100;
+let clienteActual="pueblo",productoActual="bolsa_5kg";
+function leerJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){return fallback}}
+let inventario=normalizarInventario(leerJSON(STORAGE_STOCK,DEFAULT_STOCK));
+let ventas=leerJSON(STORAGE_SALES,[]);
+if(!Array.isArray(ventas))ventas=[];
+function normalizarInventario(data){
+  const result={};
+  for(const key of Object.keys(DEFAULT_STOCK)){
+    const value=Number(data?.[key]);
+    result[key]=Number.isFinite(value)&&value>=0?Math.floor(value):DEFAULT_STOCK[key];
+  }
+  return result;
+}
+function guardarDatos(){
+  localStorage.setItem(STORAGE_STOCK,JSON.stringify(inventario));
+  localStorage.setItem(STORAGE_SALES,JSON.stringify(ventas));
+}
+function dinero(value){return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(value)}
+function setCliente(tipo,btn){
+  clienteActual=tipo;
+  document.querySelectorAll("#clientOptions .opt-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");actualizarEtiquetasPrecios();calcular();
+}
+function setProducto(prod,btn){
+  productoActual=prod;
+  document.querySelectorAll("#productOptions .opt-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");calcular();
+}
+function actualizarEtiquetasPrecios(){
+  for(const prod of Object.keys(TARIFARIO[clienteActual])){
+    document.getElementById("tag_"+prod).textContent=dinero(TARIFARIO[clienteActual][prod]);
+  }
+}
+function calcular(){
+  const cant=Math.floor(Number(document.getElementById("cantidadInput").value)||0);
+  const precio=TARIFARIO[clienteActual][productoActual],total=cant*precio;
+  document.getElementById("lblPrecio").textContent=dinero(precio);
+  document.getElementById("lblFormula").textContent=`${cant} × ${dinero(precio)}`;
+  document.getElementById("lblTotal").textContent=dinero(total);
+  document.getElementById("chargeButton").disabled=cant<=0;
+}
+function procesarVenta(){
+  const input=document.getElementById("cantidadInput");
+  const cant=Math.floor(Number(input.value)||0);
+  if(!Number.isSafeInteger(cant)||cant<=0){alert("Ingresa una cantidad válida.");return}
+  if(cant>inventario[productoActual]){alert("❌ No hay suficiente inventario.");return}
+  const precio=TARIFARIO[clienteActual][productoActual],total=cant*precio;
+  if(!confirm(`Confirmar venta\n\n${cant} unidad(es) · ${nombreProducto(productoActual)}\nCliente: ${nombreCliente(clienteActual)}\nTotal: ${dinero(total)}\n\n¿Registrar cobro y descontar inventario?`))return;
+  inventario[productoActual]-=cant;
+  ventas.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),fecha:new Date().toISOString(),cliente:clienteActual,producto:productoActual,cantidad:cant,precio,total});
+  guardarDatos();actualizarPantallaInventario();actualizarPantallaFinanzas();
+  alert(`✅ ¡Venta registrada!\nCobrado: ${dinero(total)} MXN\nStock restante: ${inventario[productoActual]}`);
+}
+function nombreProducto(p){return({bolsa_3kg:"Bolsa 3 kg",bolsa_5kg:"Bolsa 5 kg",barra_20kg:"Barra 20 kg"})[p]||p}
+function nombreCliente(c){return({pueblo:"Tienda Pueblo",fuera:"Tienda Fuera",casa:"Venta en Casa",evento:"Eventos / Entrega"})[c]||c}
+function actualizarPantallaInventario(){
+  let hayAlerta=false;
+  for(const [prod,val] of Object.entries(inventario)){
+    document.getElementById("st"+prod).textContent=val;
+    const box=document.getElementById("box"+prod);
+    if(val<UMBRAL){box.classList.add("alert");hayAlerta=true}else box.classList.remove("alert");
+  }
+  document.getElementById("alertaStock").style.display=hayAlerta?"block":"none";
+}
+function actualizarPantallaFinanzas(){
+  const now=new Date(),meses=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const total=ventas.filter(v=>{const d=new Date(v.fecha);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()}).reduce((sum,v)=>sum+Number(v.total||0),0);
+  document.getElementById("lblMesActual").textContent=`Ventas de ${meses[now.getMonth()]}:`;
+  document.getElementById("lblGananciaMes").textContent=dinero(total);
+}
+function exportarRespaldo(){
+  const data={app:"ABEDA ICE",version:1,exportado:new Date().toISOString(),inventario,ventas};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=`abeda-ice-respaldo-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+function restaurarRespaldo(event){
+  const file=event.target.files?.[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(data.app!=="ABEDA ICE"||!data.inventario||!Array.isArray(data.ventas))throw new Error("Formato no válido");
+      if(!confirm("Esto reemplazará el inventario y el historial guardados en este dispositivo. ¿Continuar?"))return;
+      inventario=normalizarInventario(data.inventario);
+      ventas=data.ventas.filter(v=>v&&typeof v.fecha==="string"&&Number.isFinite(Number(v.total)));
+      guardarDatos();actualizarPantallaInventario();actualizarPantallaFinanzas();
+      alert("✅ Respaldo restaurado correctamente.");
+    }catch(err){alert("No se pudo restaurar. Verifica que seleccionaste un respaldo válido de ABEDA ICE.")}
+    finally{event.target.value=""}
+  };
+  reader.onerror=()=>alert("No se pudo leer el archivo.");
+  reader.readAsText(file);
+}
+let deferredInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",event=>{
+  event.preventDefault();deferredInstallPrompt=event;
+  document.getElementById("installButton").style.display="block";
+});
+async function instalarApp(){
+  if(!deferredInstallPrompt){alert("Para instalarla, abre esta página en Chrome y usa el menú ⋮ > Instalar aplicación o Añadir a pantalla principal.");return}
+  deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;document.getElementById("installButton").style.display="none";
+}
+function actualizarConexion(){
+  const el=document.getElementById("connectionStatus");
+  el.textContent=navigator.onLine?"● Con conexión":"● Sin conexión · modo local";
+  el.className="status "+(navigator.onLine?"online":"offline");
+}
+window.addEventListener("online",actualizarConexion);
+window.addEventListener("offline",actualizarConexion);
+actualizarEtiquetasPrecios();actualizarPantallaInventario();actualizarPantallaFinanzas();calcular();actualizarConexion();
+if("serviceWorker" in navigator && location.protocol!=="file:"){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.error("No se pudo registrar el service worker:",err)));
+}
+</script>
+</body>
+</html>
