@@ -85,7 +85,7 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <div class="calc-total" id="lblTotal">$300.00</div>
     </div>
     <button class="btn" id="chargeButton" onclick="procesarVenta()">¡COBRAR Y DESCONTAR!</button>
-    <p class="small-note">Confirma la cantidad y el producto antes de registrar el cobro. Cada venta se guarda en este dispositivo.</p>
+    <p class="small-note">Confirma la cantidad y el producto antes de registrar el cobro. Cada venta se guarda en la nube.</p>
   </section>
 
   <section class="card">
@@ -138,9 +138,10 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <button class="btn btn-secondary" onclick="instalarApp()" id="installButton" style="display:none">Instalar aplicación</button>
     </div>
     <input type="file" id="restoreFile" accept="application/json,.json" style="display:none" onchange="restaurarRespaldo(event)">
-    <p class="small-note">Descarga periódicamente un respaldo. Los datos se guardan en el almacenamiento de este navegador y dispositivo.</p>
+    <p class="small-note">Descarga periódicamente un respaldo.</p>
   </section>
 </div>
+
 <script>
 "use strict";
 const TARIFARIO={
@@ -154,10 +155,12 @@ const STORAGE_STOCK="abeda_pwa_inventario_v1";
 const STORAGE_SALES="abeda_pwa_ventas_v1";
 const UMBRAL=100;
 let clienteActual="pueblo",productoActual="bolsa_5kg";
+
 function leerJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){return fallback}}
 let inventario=normalizarInventario(leerJSON(STORAGE_STOCK,DEFAULT_STOCK));
 let ventas=leerJSON(STORAGE_SALES,[]);
 if(!Array.isArray(ventas))ventas=[];
+
 function normalizarInventario(data){
   const result={};
   for(const key of Object.keys(DEFAULT_STOCK)){
@@ -166,10 +169,24 @@ function normalizarInventario(data){
   }
   return result;
 }
-function guardarDatos(){
+
+async function guardarDatos(){
   localStorage.setItem(STORAGE_STOCK,JSON.stringify(inventario));
   localStorage.setItem(STORAGE_SALES,JSON.stringify(ventas));
+
+  if (window.db && window.setDoc && window.doc) {
+    try {
+      await window.setDoc(window.doc(window.db, "abeda_ice", "inventario_general"), {
+        inventario: inventario,
+        ventas: ventas,
+        ultimaActualizacion: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error("Error al sincronizar con la nube:", e);
+    }
+  }
 }
+
 function dinero(value){return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(value)}
 function setCliente(tipo,btn){
   clienteActual=tipo;
@@ -226,11 +243,9 @@ function fijarStock(){
   alert(`✅ Stock actualizado para ${nombreProducto(prod)}.\nTotal actual: ${inventario[prod]}`);
 }
 
-/* NUEVA FUNCIÓN PARA REINICIAR LAS VENTAS DEL MES EN CURSO */
 function reiniciarVentasMes(){
   if(!confirm("¿Estás seguro de borrar el registro de ventas de este mes para empezar desde $0.00?"))return;
   const now=new Date();
-  // Filtramos y dejamos únicamente las ventas que NO sean de este mes actual
   ventas=ventas.filter(v=>{
     const d=new Date(v.fecha);
     return !(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth());
@@ -271,41 +286,46 @@ function restaurarRespaldo(event){
     try{
       const data=JSON.parse(reader.result);
       if(data.app!=="ABEDA ICE"||!data.inventario||!Array.isArray(data.ventas))throw new Error("Formato no válido");
-      if(!confirm("Esto reemplazará el inventario y el historial guardados en este dispositivo. ¿Continuar?"))return;
+      if(!confirm("Esto reemplazará el inventario y el historial. ¿Continuar?"))return;
       inventario=normalizarInventario(data.inventario);
       ventas=data.ventas.filter(v=>v&&typeof v.fecha==="string"&&Number.isFinite(Number(v.total)));
       guardarDatos();actualizarPantallaInventario();actualizarPantallaFinanzas();
       alert("✅ Respaldo restaurado correctamente.");
-    }catch(err){alert("No se pudo restaurar. Verifica que seleccionaste un respaldo válido de ABEDA ICE.")}
+    }catch(err){alert("No se pudo restaurar el respaldo.")}
     finally{event.target.value=""}
   };
   reader.onerror=()=>alert("No se pudo leer el archivo.");
   reader.readAsText(file);
 }
+
 let deferredInstallPrompt=null;
-window.addEventListener("beforeinstallprompt",event,{passive:true});
 window.addEventListener("beforeinstallprompt",event=>{
   event.preventDefault();deferredInstallPrompt=event;
   document.getElementById("installButton").style.display="block";
 });
 async function instalarApp(){
-  if(!deferredInstallPrompt){alert("Para instalarla, abre esta página en Chrome y usa el menú ⋮ > Instalar aplicación o Añadir a pantalla principal.");return}
+  if(!deferredInstallPrompt){alert("Usa el menú ⋮ de tu navegador para instalar la aplicación.");return}
   deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;
   deferredInstallPrompt=null;document.getElementById("installButton").style.display="none";
 }
+
 function actualizarConexion(){
   const el=document.getElementById("connectionStatus");
-  el.textContent=navigator.onLine?"● Con conexión":"● Sin conexión · modo local";
+  el.textContent=navigator.onLine?"● Con conexión a la nube":"● Sin conexión · modo local";
   el.className="status "+(navigator.onLine?"online":"offline");
 }
 window.addEventListener("online",actualizarConexion);
 window.addEventListener("offline",actualizarConexion);
+
 actualizarEtiquetasPrecios();actualizarPantallaInventario();actualizarPantallaFinanzas();calcular();actualizarConexion();
+
 if("serviceWorker" in navigator && location.protocol!=="file:"){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.error("No se pudo registrar el service worker:",err)));
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.error(err)));
 }
 </script>
-  <script type="module">
+
+<!-- SCRIPT DE FIREBASE Y SINCRONIZACIÓN EN VIVO -->
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
   import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
@@ -331,7 +351,8 @@ if("serviceWorker" in navigator && location.protocol!=="file:"){
   window.onSnapshot = onSnapshot;
 
   console.log("¡ABEDA ICE conectado a Firebase!");
-</script>
 
-</body>
-</html>
+  // Escuchar cambios en tiempo real en la nube
+  setTimeout(() => {
+    if (window.db && window.onSnapshot && window.doc) {
+      window.onSnapshot(window.do
