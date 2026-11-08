@@ -305,5 +305,33 @@ if("serviceWorker" in navigator && location.protocol!=="file:"){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.error("No se pudo registrar el service worker:",err)));
 }
 </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAFDjMNs8GUlCTyEf-sd1J6WGUtwG01rHg",
+    authDomain: "abeda-ice.firebaseapp.com",
+    projectId: "abeda-ice",
+    storageBucket: "abeda-ice.firebasestorage.app",
+    messagingSenderId: "609948831093",
+    appId: "1:609948831093:web:d72d503ab0c2d36c9d973c",
+    measurementId: "G-3YLYN7LBK2"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+
+  window.db = db;
+  window.setDoc = setDoc;
+  window.doc = doc;
+  window.getDoc = getDoc;
+  window.onSnapshot = onSnapshot;
+
+  console.log("¡ABEDA ICE conectado a Firebase!");
+</script>
+
 </body>
 </html>
