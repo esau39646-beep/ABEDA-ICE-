@@ -256,13 +256,11 @@ function calcular(){
   document.getElementById("lblTotal").textContent=dinero(total);
   document.getElementById("chargeButton").disabled=cant<=0;
 }
-
 async function procesarVenta(){
   const input=document.getElementById("cantidadInput");
   const cant=Math.floor(Number(input.value)||0);
   const gastoGasVal = Number(document.getElementById("ventaGasolina").value || 0);
 
-  // Validación estricta: si faltan datos o excede el stock, frena y NO manda nada a Telegram
   if(!Number.isSafeInteger(cant)||cant<=0){
     alert("❌ Error: Ingresa una cantidad de unidades válida.");
     return;
@@ -294,13 +292,21 @@ async function procesarVenta(){
 
   document.getElementById("ventaGasolina").value = "";
 
+  // DETECCIÓN DE STOCK BAJO (< 100 unidades) PARA ALERTA LLAMATIVA EN TELEGRAM
+  let alertaStockTelegram = "";
+  if (inventario[productoActual] < UMBRAL) {
+    alertaStockTelegram = `\n\n🚨 *¡ALERTA CRÍTICA DE STOCK!* 🚨\n⚠️ *¡${nombreProducto(productoActual)} bajó de 100 unidades (${inventario[productoActual]} restantes)! Se recomienda reabastecer el cuarto frío.*`;
+  }
+
   const msg = `🛒 *¡Nueva Venta Registrada!* 🧊\n\n` +
               `• Producto: ${cant} ${nombreProducto(productoActual)}\n` +
               `• Cliente: ${nombreCliente(clienteActual)}\n` +
               `• Precio unitario: ${dinero(precio)}\n` +
               `• Total generado: ${dinero(total)}\n` +
               `• Gasto gasolina: ${textoGasolinaTelegram}\n` +
-              `• Stock actual: ${inventario[productoActual]} unidades`;
+              `• Stock actual: ${inventario[productoActual]} unidades` +
+              alertaStockTelegram;
+
   enviarTelegram(msg);
 
   alert(`✅ ¡Venta registrada!\nCobrado: ${dinero(total)} MXN\nStock restante: ${inventario[productoActual]}`);
