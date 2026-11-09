@@ -20,14 +20,15 @@ body{background:var(--bg-main);color:var(--text);padding:12px 12px calc(20px + e
 .card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px}
 .section-title{font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:10px}
 .grid-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.grid-options.full{grid-template-columns:1fr}
 .opt-btn{background:var(--input-bg);border:2px solid var(--border);border-radius:10px;padding:12px 10px;color:var(--text);font-size:.9rem;font-weight:600;text-align:center;cursor:pointer}
-.opt-btn .price-tag{font-size:.75rem;color:var(--text-muted);display:block;margin-top:4px}
 .opt-btn.active{background:rgba(2,132,199,.2);border-color:var(--primary);color:var(--accent)}
 .form-group{margin-top:10px}
 label{display:block;font-size:.85rem;color:var(--text-muted);margin-bottom:6px}
-input[type=number], input[type=text], select{width:100%;padding:14px;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:1.1rem;font-weight:bold;outline:none;box-sizing:border-box}
-select{font-size:1rem;}
+input[type=number], input[type=text], select{width:100%;padding:12px;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;font-weight:bold;outline:none;box-sizing:border-box}
+.prod-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;background:var(--input-bg);padding:10px;border-radius:10px;border:1px solid var(--border)}
+.prod-info{font-size:.85rem;font-weight:bold;flex:1}
+.prod-info span{display:block;font-size:.75rem;color:var(--accent);font-weight:normal}
+.prod-qty{width:90px !important;padding:8px !important;text-align:center;font-size:1.1rem !important}
 .calc-box{background:var(--input-bg);border-radius:10px;padding:14px;margin:14px 0;display:flex;justify-content:space-between;align-items:center;border:1px dashed var(--accent);gap:8px}
 .calc-info{font-size:.85rem;color:var(--text-muted)}
 .calc-total{font-size:1.6rem;font-weight:800;color:var(--accent);white-space:nowrap}
@@ -70,29 +71,36 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
       <button class="opt-btn" data-client="casa" onclick="setCliente('casa',this)">Venta en Casa</button>
       <button class="opt-btn" data-client="evento" onclick="setCliente('evento',this)">Eventos / Entrega</button>
     </div>
-    <div class="section-title" style="margin-top:14px">📦 Producto</div>
-    <div class="grid-options full" id="productOptions">
-      <button class="opt-btn active" data-product="bolsa_5kg" onclick="setProducto('bolsa_5kg',this)">Bolsa de 5 kg <span class="price-tag" id="tag_bolsa_5kg">$15.00</span></button>
-      <button class="opt-btn" data-product="bolsa_3kg" onclick="setProducto('bolsa_3kg',this)">Bolsa de 3 kg <span class="price-tag" id="tag_bolsa_3kg">$10.00</span></button>
-      <button class="opt-btn" data-product="barra_20kg" onclick="setProducto('barra_20kg',this)">Barra / Bloque 20 kg <span class="price-tag" id="tag_barra_20kg">$30.00</span></button>
-    </div>
-    <div class="form-group">
-      <label for="cantidadInput">Cantidad de unidades *</label>
-      <input type="number" id="cantidadInput" value="20" min="1" step="1" inputmode="numeric" oninput="calcular()">
+
+    <div class="section-title" style="margin-top:14px">📦 Pedido Multi-Producto</div>
+    
+    <div class="prod-row">
+      <div class="prod-info">Bolsa 3 kg <span id="tag_bolsa_3kg">$10.00 c/u</span></div>
+      <input type="number" id="qty_bolsa_3kg" class="prod-qty" placeholder="0" min="0" step="1" inputmode="numeric" oninput="calcular()">
     </div>
 
-    <!-- Campo integrado de gasto de gasolina en la misma venta -->
+    <div class="prod-row">
+      <div class="prod-info">Bolsa 5 kg <span id="tag_bolsa_5kg">$15.00 c/u</span></div>
+      <input type="number" id="qty_bolsa_5kg" class="prod-qty" placeholder="0" min="0" step="1" inputmode="numeric" oninput="calcular()">
+    </div>
+
+    <div class="prod-row">
+      <div class="prod-info">Barra / Bloque 20 kg <span id="tag_barra_20kg">$30.00 c/u</span></div>
+      <input type="number" id="qty_barra_20kg" class="prod-qty" placeholder="0" min="0" step="1" inputmode="numeric" oninput="calcular()">
+    </div>
+
     <div class="form-group" style="margin-top:12px;">
-      <label for="ventaGasolina">Gasto de gasolina en esta vuelta ($ MXN):</label>
-      <input type="number" id="ventaGasolina" placeholder="0 (o deja en blanco si no aplica)" min="0" step="1" inputmode="numeric" style="font-size:1rem; padding:12px;">
+      <label for="ventaGasolina">⛽ Gasto de gasolina en esta vuelta ($ MXN):</label>
+      <input type="number" id="ventaGasolina" placeholder="0 (deja en blanco si no hubo)" min="0" step="1" inputmode="numeric">
     </div>
 
     <div class="calc-box">
-      <div class="calc-info"><div>Precio unitario: <b id="lblPrecio">$15.00</b></div><div style="font-size:.75rem;margin-top:2px" id="lblFormula">20 × $15</div></div>
-      <div class="calc-total" id="lblTotal">$300.00</div>
+      <div class="calc-info"><div>Resumen de orden:</div><div style="font-size:.75rem;margin-top:2px" id="lblFormula">Selecciona productos</div></div>
+      <div class="calc-total" id="lblTotal">$0.00</div>
     </div>
-    <button class="btn" id="chargeButton" onclick="procesarVenta()">¡COBRAR Y DESCONTAR!</button>
-    <p class="small-note">Si falta algún dato obligatorio, el registro se cancela y no se envía alerta.</p>
+
+    <button class="btn" id="chargeButton" onclick="procesarVenta()" disabled>¡COBRAR Y DESCONTAR!</button>
+    <p class="small-note">Puedes ingresar cantidades en varios productos a la vez para el mismo cliente.</p>
   </section>
 
   <section class="card">
@@ -118,31 +126,29 @@ hr{border:0;border-top:1px solid var(--border);margin:14px 0}
     </div>
     <div class="form-group">
       <label for="restockQty">Cantidad *</label>
-      <input type="number" id="restockQty" placeholder="Ej: 500" min="1" step="1" inputmode="numeric" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
+      <input type="number" id="restockQty" placeholder="Ej: 500" min="1" step="1" inputmode="numeric">
     </div>
-    <div class="action-grid">
+    <div class="action-grid" style="margin-top:10px;">
       <button class="btn btn-blue" onclick="sumarStock()" style="padding:12px; font-size:0.95rem;">➕ Sumar Stock</button>
       <button class="btn btn-secondary" onclick="fijarStock()" style="padding:12px; font-size:0.95rem;">✏️ Fijar Total</button>
     </div>
-    <p class="small-note">Si la cantidad está vacía o es inválida, no se aplicará ni mandará alerta.</p>
   </section>
 
-  <!-- REGISTRO DE GASTOS EXTRA -->
+  <!-- GASTO EXTRA -->
   <section class="card" style="border-color: var(--warning);">
-    <div class="section-title">⛽ Registrar Gasto Extra</div>
+    <div class="section-title">💸 Registrar Gasto Extra (Insumos / Mantto)</div>
     <div class="form-group" style="margin-top:0;">
-      <label for="gastoConcepto">Concepto del gasto *</label>
-      <input type="text" id="gastoConcepto" placeholder="Ej: Mantenimiento compresor" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
+      <label for="gastoConcepto">Concepto *</label>
+      <input type="text" id="gastoConcepto" placeholder="Ej: Empaques / Mantenimiento">
     </div>
     <div class="form-group">
       <label for="gastoMonto">Monto ($ MXN) *</label>
-      <input type="number" id="gastoMonto" placeholder="Ej: 300" min="1" step="1" inputmode="numeric" style="font-size:1rem; padding:12px; margin-top:4px; margin-bottom:10px;">
+      <input type="number" id="gastoMonto" placeholder="Ej: 300" min="1" step="1" inputmode="numeric">
     </div>
-    <button class="btn btn-blue" onclick="registrarGasto()" style="padding:12px; font-size:0.95rem; background:var(--warning); color:#000;">💸 Registrar Gasto del Mes</button>
-    <p class="small-note">Si faltan datos, el gasto no se registra.</p>
+    <button class="btn btn-blue" onclick="registrarGasto()" style="padding:12px; font-size:0.95rem; background:var(--warning); color:#000; margin-top:10px;">💸 Registrar Gasto</button>
   </section>
 
-  <!-- FINANZAS Y GANANCIA REAL -->
+  <!-- FINANZAS -->
   <section class="card">
     <div class="section-title">📊 Balance Financiero del Mes</div>
     <div class="finance-box"><div class="finance-title" id="lblMesActual">Ventas brutas:</div><div class="finance-val" id="lblGananciaMes">$0.00</div></div>
@@ -195,7 +201,7 @@ const STORAGE_SALES="abeda_pwa_ventas_v1";
 const STORAGE_EXPENSES="abeda_pwa_gastos_v1";
 const UMBRAL=100;
 
-let clienteActual="pueblo",productoActual="bolsa_5kg";
+let clienteActual="pueblo";
 
 function leerJSON(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){return fallback}}
 let inventario=normalizarInventario(leerJSON(STORAGE_STOCK,DEFAULT_STOCK));
@@ -238,51 +244,80 @@ function setCliente(tipo,btn){
   document.querySelectorAll("#clientOptions .opt-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");actualizarEtiquetasPrecios();calcular();
 }
-function setProducto(prod,btn){
-  productoActual=prod;
-  document.querySelectorAll("#productOptions .opt-btn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");calcular();
-}
 function actualizarEtiquetasPrecios(){
   for(const prod of Object.keys(TARIFARIO[clienteActual])){
-    document.getElementById("tag_"+prod).textContent=dinero(TARIFARIO[clienteActual][prod]);
+    document.getElementById("tag_"+prod).textContent=dinero(TARIFARIO[clienteActual][prod]) + " c/u";
   }
 }
 function calcular(){
-  const cant=Math.floor(Number(document.getElementById("cantidadInput").value)||0);
-  const precio=TARIFARIO[clienteActual][productoActual],total=cant*precio;
-  document.getElementById("lblPrecio").textContent=dinero(precio);
-  document.getElementById("lblFormula").textContent=`${cant} × ${dinero(precio)}`;
-  document.getElementById("lblTotal").textContent=dinero(total);
-  document.getElementById("chargeButton").disabled=cant<=0;
+  const q3 = Math.floor(Number(document.getElementById("qty_bolsa_3kg").value)||0);
+  const q5 = Math.floor(Number(document.getElementById("qty_bolsa_5kg").value)||0);
+  const qb = Math.floor(Number(document.getElementById("qty_barra_20kg").value)||0);
+
+  const t3 = q3 * TARIFARIO[clienteActual].bolsa_3kg;
+  const t5 = q5 * TARIFARIO[clienteActual].bolsa_5kg;
+  const tb = qb * TARIFARIO[clienteActual].barra_20kg;
+  const grandTotal = t3 + t5 + tb;
+
+  let partes = [];
+  if(q3>0) partes.push(`${q3} (3kg)`);
+  if(q5>0) partes.push(`${q5} (5kg)`);
+  if(qb>0) partes.push(`${qb} (Barras)`);
+
+  document.getElementById("lblFormula").textContent = partes.length > 0 ? partes.join(" + ") : "Selecciona productos";
+  document.getElementById("lblTotal").textContent = dinero(grandTotal);
+  document.getElementById("chargeButton").disabled = (grandTotal <= 0);
 }
-async function procesarVenta(){
-  const input=document.getElementById("cantidadInput");
-  const cant=Math.floor(Number(input.value)||0);
+  async function procesarVenta(){
+  const q3 = Math.floor(Number(document.getElementById("qty_bolsa_3kg").value)||0);
+  const q5 = Math.floor(Number(document.getElementById("qty_bolsa_5kg").value)||0);
+  const qb = Math.floor(Number(document.getElementById("qty_barra_20kg").value)||0);
   const gastoGasVal = Number(document.getElementById("ventaGasolina").value || 0);
 
-  if(!Number.isSafeInteger(cant)||cant<=0){
-    alert("❌ Error: Ingresa una cantidad de unidades válida.");
-    return;
-  }
-  if(cant>inventario[productoActual]){
-    alert("❌ Error: No hay suficiente inventario en el cuarto frío.");
+  if (q3 <= 0 && q5 <= 0 && qb <= 0) {
+    alert("❌ Error: Selecciona la cantidad de al menos un producto.");
     return;
   }
 
-  const precio=TARIFARIO[clienteActual][productoActual],total=cant*precio;
-  
-  if(!confirm(`Confirmar venta\n\n${cant} unidad(es) · ${nombreProducto(productoActual)}\nCliente: ${nombreCliente(clienteActual)}\nTotal: ${dinero(total)}\nGasolina asociada: ${gastoGasVal > 0 ? dinero(gastoGasVal) : "No aplica"}\n\n¿Registrar cobro?`)) return;
-  
-  inventario[productoActual]-=cant;
-  const ventaId = crypto.randomUUID?crypto.randomUUID():String(Date.now());
+  // Verificar stock suficiente para todos los productos seleccionados
+  if (q3 > inventario.bolsa_3kg) { alert(`❌ No hay suficiente inventario de Bolsa 3 kg (Quedan ${inventario.bolsa_3kg})`); return; }
+  if (q5 > inventario.bolsa_5kg) { alert(`❌ No hay suficiente inventario de Bolsa 5 kg (Quedan ${inventario.bolsa_5kg})`); return; }
+  if (qb > inventario.barra_20kg) { alert(`❌ No hay suficiente inventario de Barra 20 kg (Quedan ${inventario.barra_20kg})`); return; }
+
+  const t3 = q3 * TARIFARIO[clienteActual].bolsa_3kg;
+  const t5 = q5 * TARIFARIO[clienteActual].bolsa_5kg;
+  const tb = qb * TARIFARIO[clienteActual].barra_20kg;
+  const grandTotal = t3 + t5 + tb;
+
+  let resumenConfirm = `Confirmar venta total: ${dinero(grandTotal)}\nCliente: ${nombreCliente(clienteActual)}\n\n`;
+  if (q3 > 0) resumenConfirm += `• Bolsa 3 kg: ${q3} x ${dinero(TARIFARIO[clienteActual].bolsa_3kg)}\n`;
+  if (q5 > 0) resumenConfirm += `• Bolsa 5 kg: ${q5} x ${dinero(TARIFARIO[clienteActual].bolsa_5kg)}\n`;
+  if (qb > 0) resumenConfirm += `• Barra 20 kg: ${qb} x ${dinero(TARIFARIO[clienteActual].barra_20kg)}\n`;
+  if (gastoGasVal > 0) resumenConfirm += `• Gasolina asociada: ${dinero(gastoGasVal)}\n`;
+
+  if (!confirm(resumenConfirm + "\n¿Registrar cobro y descontar inventario?")) return;
+
+  // Descontar inventario
+  inventario.bolsa_3kg -= q3;
+  inventario.bolsa_5kg -= q5;
+  inventario.barra_20kg -= qb;
+
+  const ventaId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
   const fechaIso = new Date().toISOString();
 
-  ventas.push({id:ventaId, fecha:fechaIso, cliente:clienteActual, producto:productoActual, cantidad:cant, precio, total});
+  // Guardar en array de ventas
+  ventas.push({
+    id: ventaId,
+    fecha: fechaIso,
+    cliente: clienteActual,
+    detalle: { q3, q5, qb },
+    total: grandTotal
+  });
 
+  // Guardar gasto de gasolina si hubo
   let textoGasolinaTelegram = "No aplica";
-  if(gastoGasVal > 0){
-    gastos.push({id:ventaId+"_g", fecha:fechaIso, concepto:`Gasolina (${nombreProducto(productoActual)})`, monto:gastoGasVal});
+  if (gastoGasVal > 0) {
+    gastos.push({ id: ventaId + "_g", fecha: fechaIso, concepto: `Gasolina venta (${nombreCliente(clienteActual)})`, monto: gastoGasVal });
     textoGasolinaTelegram = dinero(gastoGasVal);
   }
 
@@ -290,35 +325,45 @@ async function procesarVenta(){
   actualizarPantallaInventario();
   actualizarPantallaFinanzas();
 
+  // Limpiar campos
+  document.getElementById("qty_bolsa_3kg").value = "";
+  document.getElementById("qty_bolsa_5kg").value = "";
+  document.getElementById("qty_barra_20kg").value = "";
   document.getElementById("ventaGasolina").value = "";
+  calcular();
 
-  // DETECCIÓN DE STOCK BAJO (< 100 unidades) PARA ALERTA LLAMATIVA EN TELEGRAM
-  let alertaStockTelegram = "";
-  if (inventario[productoActual] < UMBRAL) {
-    alertaStockTelegram = `\n\n🚨 *¡ALERTA CRÍTICA DE STOCK!* 🚨\n⚠️ *¡${nombreProducto(productoActual)} bajó de 100 unidades (${inventario[productoActual]} restantes)! Se recomienda reabastecer el cuarto frío.*`;
-  }
+  // Armar reporte desglosado para Telegram
+  let detalleTelegram = "";
+  if (q3 > 0) detalleTelegram += `  - Bolsa 3 kg: ${q3} u. (${dinero(t3)})\n`;
+  if (q5 > 0) detalleTelegram += `  - Bolsa 5 kg: ${q5} u. (${dinero(t5)})\n`;
+  if (qb > 0) detalleTelegram += `  - Barra 20 kg: ${qb} u. (${dinero(tb)})\n`;
 
-  const msg = `🛒 *¡Nueva Venta Registrada!* 🧊\n\n` +
-              `• Producto: ${cant} ${nombreProducto(productoActual)}\n` +
-              `• Cliente: ${nombreCliente(clienteActual)}\n` +
-              `• Precio unitario: ${dinero(precio)}\n` +
-              `• Total generado: ${dinero(total)}\n` +
-              `• Gasto gasolina: ${textoGasolinaTelegram}\n` +
-              `• Stock actual: ${inventario[productoActual]} unidades` +
-              alertaStockTelegram;
+  // Alertas críticas de stock
+  let alertasTelegram = "";
+  if (inventario.bolsa_3kg < UMBRAL) alertasTelegram += `\n🚨 *¡ALERTA!* Bolsa 3 kg bajo de 100 u. (${inventario.bolsa_3kg} rest.)`;
+  if (inventario.bolsa_5kg < UMBRAL) alertasTelegram += `\n🚨 *¡ALERTA!* Bolsa 5 kg bajo de 100 u. (${inventario.bolsa_5kg} rest.)`;
+  if (inventario.barra_20kg < UMBRAL) alertasTelegram += `\n🚨 *¡ALERTA!* Barra 20 kg bajo de 100 u. (${inventario.barra_20kg} rest.)`;
+
+  const msg = `🛒 *¡Nueva Venta Multi-Producto!* 🧊\n\n` +
+              `• *Cliente:* ${nombreCliente(clienteActual)}\n` +
+              `• *Desglose del pedido:*\n${detalleTelegram}` +
+              `• *Total Cobrado:* ${dinero(grandTotal)}\n` +
+              `• *Gasto gasolina:* ${textoGasolinaTelegram}\n\n` +
+              `📦 *Stock restante en Cuarto Frío:*\n` +
+              `• Bolsa 3kg: ${inventario.bolsa_3kg}\n` +
+              `• Bolsa 5kg: ${inventario.bolsa_5kg}\n` +
+              `• Barra 20kg: ${inventario.barra_20kg}` +
+              (alertasTelegram ? `\n${alertasTelegram}\n⚠️ *Se recomienda reabastecer el cuarto frío.*` : "");
 
   enviarTelegram(msg);
 
-  alert(`✅ ¡Venta registrada!\nCobrado: ${dinero(total)} MXN\nStock restante: ${inventario[productoActual]}`);
+  alert(`✅ ¡Venta completada!\nTotal cobrado: ${dinero(grandTotal)} MXN`);
 }
 
 async function sumarStock(){
   const prod=document.getElementById("restockProd").value;
   const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
-  if(cant<=0){
-    alert("❌ Error: Ingresa una cantidad válida para sumar stock.");
-    return;
-  }
+  if(cant<=0){alert("❌ Error: Ingresa una cantidad válida.");return;}
   
   inventario[prod]+=cant;
   await guardarDatos();
@@ -337,10 +382,7 @@ async function sumarStock(){
 async function fijarStock(){
   const prod=document.getElementById("restockProd").value;
   const cant=Math.floor(Number(document.getElementById("restockQty").value)||0);
-  if(cant<0){
-    alert("❌ Error: Ingresa una cantidad válida.");
-    return;
-  }
+  if(cant<0){alert("❌ Error: Ingresa una cantidad válida.");return;}
   
   inventario[prod]=cant;
   await guardarDatos();
@@ -354,14 +396,11 @@ async function fijarStock(){
 
   alert(`✅ Stock actualizado para ${nombreProducto(prod)}.\nTotal actual: ${inventario[prod]}`);
 }
-  async function registrarGasto(){
+
+async function registrarGasto(){
   const concepto = document.getElementById("gastoConcepto").value.trim();
   const monto = Math.floor(Number(document.getElementById("gastoMonto").value)||0);
-  
-  if(!concepto || monto <= 0){
-    alert("❌ Error: Debes rellenar el concepto y un monto válido para registrar el gasto.");
-    return;
-  }
+  if(!concepto || monto <= 0){alert("❌ Error: Rellena concepto y monto válido.");return;}
 
   gastos.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),fecha:new Date().toISOString(),concepto,monto});
   await guardarDatos();
@@ -370,7 +409,7 @@ async function fijarStock(){
   document.getElementById("gastoConcepto").value="";
   document.getElementById("gastoMonto").value="";
 
-  const msg = `⛽ *Gasto Extra Registrado* 💸\n\n` +
+  const msg = `💸 *Gasto Extra Registrado*\n\n` +
               `• Concepto: ${concepto}\n` +
               `• Monto: ${dinero(monto)}`;
   enviarTelegram(msg);
@@ -379,7 +418,7 @@ async function fijarStock(){
 }
 
 async function reiniciarVentasMes(){
-  if(!confirm("¿Estás seguro de borrar el registro de ventas y gastos de este mes para empezar desde $0.00?"))return;
+  if(!confirm("¿Estás seguro de borrar las ventas y gastos de este mes para empezar de $0.00?"))return;
   const now=new Date();
   ventas=ventas.filter(v=>{
     const d=new Date(v.fecha);
@@ -420,7 +459,7 @@ function actualizarPantallaFinanzas(){
 }
 
 function exportarRespaldo(){
-  const data={app:"ABEDA ICE",version:3,exportado:new Date().toISOString(),inventario,ventas,gastos};
+  const data={app:"ABEDA ICE",version:4,exportado:new Date().toISOString(),inventario,ventas,gastos};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download=`abeda-ice-respaldo-${new Date().toISOString().slice(0,10)}.json`;
@@ -503,7 +542,6 @@ if("serviceWorker" in navigator && location.protocol!=="file:"){
 
   console.log("¡ABEDA ICE conectado a Firebase!");
 
-  // Escuchar cambios en tiempo real en la nube
   setTimeout(() => {
     if (window.db && window.onSnapshot && window.doc) {
       window.onSnapshot(window.doc(window.db, "abeda_ice", "inventario_general"), (docSnap) => {
